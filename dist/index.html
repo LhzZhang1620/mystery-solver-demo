@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10182b" />
+    <meta
+      name="description"
+      content="一款以证词矛盾和证据链为核心的文字推理游戏。"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2310182b'/%3E%3Cpath d='M20 18h24v28H20z' fill='none' stroke='%23e8b85a' stroke-width='4'/%3E%3Cpath d='M26 26h12M26 34h12M26 42h7' stroke='%2377d7d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <title>夜钟疑案 · 推理档案</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #10182b;
+        --ink-soft: #18233a;
+        --panel: #1e2b47;
+        --panel-high: #263654;
+        --line: rgba(196, 216, 235, 0.18);
+        --paper: #f4f0e7;
+        --muted: #aebbd0;
+        --teal: #77d7d1;
+        --gold: #e8b85a;
+        --rose: #ed8d91;
+        --green: #91d4a0;
+        --shadow: 0 18px 40px rgba(2, 7, 18, 0.28);
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--ink); }
+      body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--paper);
+        font-family: "Noto Sans SC", system-ui, sans-serif;
+        background:
+          radial-gradient(circle at 88% 6%, rgba(119, 215, 209, 0.11), transparent 26rem),
+          radial-gradient(circle at 5% 56%, rgba(232, 184, 90, 0.08), transparent 26rem),
+          var(--ink);
+      }
+      button, textarea, select { font: inherit; }
+      button { cursor: pointer; }
+      button:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 2px;
+      }
+
+      .app { width: min(1520px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 42px; }
+      .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 0 2px 26px; }
+      .eyebrow, .eyebrow-inline, .card-kicker, .timeline-time, .case-num, .stat-label, .tag, .location-meta {
+        letter-spacing: 0.12em; text-transform: uppercase; font-family: "DM Mono", monospace;
+      }
+      .eyebrow { color: var(--teal); font-size: 0.75rem; margin: 0 0 6px; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { font: 700 clamp(1.8rem, 4vw, 3.15rem)/1.12 "Noto Serif SC", serif; letter-spacing: 0.04em; margin-bottom: 8px; }
+      .subtitle { color: var(--muted); margin: 0; font-size: 0.98rem; }
+      .case-num { color: var(--gold); font-size: 0.82rem; padding: 10px 0; white-space: nowrap; }
+
+      .progress-block { display: flex; align-items: center; gap: 13px; }
+      .progress-ring { width: 52px; height: 52px; border: 4px solid var(--panel-high); border-top-color: var(--gold); border-right-color: var(--gold); border-radius: 50%; display: grid; place-items: center; color: var(--gold); font: 500 0.75rem "DM Mono", monospace; }
+      .progress-copy strong { display: block; font-size: 0.94rem; }
+      .progress-copy span { color: var(--muted); font-size: 0.78rem; }
+
+      .game-layout { display: grid; grid-template-columns: minmax(220px, 0.78fr) minmax(450px, 1.8fr) minmax(290px, 1fr); gap: 16px; align-items: start; }
+      .panel { border: 1px solid var(--line); background: rgba(30, 43, 71, 0.88); box-shadow: var(--shadow); border-radius: 18px; overflow: hidden; }
+      .panel-title { padding: 18px 20px 15px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+      .panel-title h2 { font: 600 1rem "Noto Serif SC", serif; margin: 0; letter-spacing: 0.05em; }
+      .panel-title small { color: var(--muted); font: 0.7rem "DM Mono", monospace; }
+
+      .location-list { padding: 9px; }
+      .location {
+        width: 100%; color: var(--paper); border: 1px solid transparent; border-radius: 11px; background: transparent; display: flex; text-align: left; align-items: center; gap: 12px; padding: 13px 11px; transition: background .18s, border-color .18s;
+      }
+      .location:hover { background: rgba(119, 215, 209, 0.08); }
+      .location.active { border-color: rgba(119, 215, 209, 0.46); background: rgba(119, 215, 209, 0.11); }
+      .location-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; color: var(--gold); font: 500 .75rem "DM Mono", monospace; flex: none; }
+      .location.active .location-mark { border-color: var(--teal); color: var(--teal); }
+      .location strong { display:block; font-size: .9rem; }
+      .location-meta { display:block; color: var(--muted); font-size: .63rem; margin-top: 3px; }
+      .location-done { margin-left: auto; color: var(--green); font-size: .9rem; }
+      .detective-note { margin: 14px 18px 18px; padding: 14px; border-left: 2px solid var(--gold); background: rgba(232, 184, 90, 0.07); color: #d6d1c5; font-size: .83rem; line-height: 1.7; }
+      .detective-note strong { display:block; color: var(--gold); font-size: .75rem; letter-spacing:.08em; margin-bottom: 4px; }
+
+      .main-panel { min-height: 605px; }
+      .scene { padding: 27px 28px 24px; min-height: 285px; position: relative; background: linear-gradient(135deg, rgba(119,215,209,.065), transparent 52%); }
+      .scene::after { content:""; position:absolute; right:28px; top:26px; width:92px; height:92px; border:1px solid rgba(232,184,90,.26); border-radius:50%; box-shadow: inset 0 0 0 15px rgba(232,184,90,.025); }
+      .scene::before { content:""; position:absolute; right:58px; top:56px; width:32px; height:32px; border:1px solid rgba(119,215,209,.55); transform:rotate(45deg); }
+      .eyebrow-inline { color: var(--teal); font-size:.7rem; }
+      .scene h2 { font: 700 clamp(1.55rem, 3vw, 2.35rem)/1.15 "Noto Serif SC", serif; margin: 9px 0 12px; max-width: 70%; }
+      .scene p { color:#c8d2df; max-width: 78%; line-height: 1.78; margin-bottom: 19px; font-size:.94rem; }
+      .scene-footer { display: flex; align-items: center; justify-content: space-between; gap:12px; position:relative; z-index:1; }
+      .scene-status { color: var(--muted); font-size:.8rem; }
+      .action-button, .submit-button, .final-button {
+        border: 0; border-radius: 9px; color: var(--ink); background: var(--gold); padding: 11px 15px; font-weight: 700; font-size:.86rem; transition: transform .16s, filter .16s;
+      }
+      .action-button:hover, .submit-button:hover, .final-button:hover { filter: brightness(1.08); transform: translateY(-1px); }
+      .action-button:disabled, .submit-button:disabled, .final-button:disabled { cursor: not-allowed; color:#778095; background:#3a465e; transform:none; filter:none; }
+      .scene-reward { margin-top:18px; display:none; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
+      .scene-reward.show { display:flex; }
+      .reward-pill { padding:6px 9px; border-radius:999px; background:rgba(145,212,160,.13); color:var(--green); border:1px solid rgba(145,212,160,.28); font-size:.72rem; }
+
+      .section-body { padding: 22px 28px 26px; border-top:1px solid var(--line); }
+      .section-heading { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+      .section-heading h3 { font:600 1rem "Noto Serif SC",serif; margin:0; }
+      .section-heading span { color:var(--muted); font-size:.72rem; }
+      .reason-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+      .field { display:block; }
+      .field span { display:block; color:var(--muted); font-size:.75rem; margin-bottom:6px; }
+      select, textarea { width:100%; color:var(--paper); background:#17233b; border:1px solid var(--line); border-radius:8px; padding:10px 11px; }
+      select:disabled { color:#758199; }
+      textarea { resize:vertical; min-height:74px; line-height:1.5; margin-top:12px; }
+      .reason-actions { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; }
+      .hint { color:var(--muted); font-size:.75rem; line-height:1.5; }
+      .analysis { display:none; padding:13px 14px; margin-top:14px; border-radius:9px; border:1px solid rgba(119,215,209,.3); background:rgba(119,215,209,.08); color:#d7efed; font-size:.85rem; line-height:1.65; }
+      .analysis.show { display:block; }
+      .analysis.error { border-color:rgba(237,141,145,.45); background:rgba(237,141,145,.08); color:#ffd9da; }
+
+      .right-column { display:grid; gap:16px; }
+      .evidence-list, .testimony-list { padding:9px; }
+      .evidence { border:1px solid transparent; padding:11px; border-radius:10px; display:flex; align-items:flex-start; gap:10px; }
+      .evidence.locked { opacity:.53; }
+      .evidence:not(.locked) { background:rgba(244,240,231,.035); }
+      .evidence-icon { color:var(--gold); width:20px; flex:none; font-size:1rem; line-height:1.35; }
+      .evidence strong { display:block; font-size:.83rem; margin-bottom:3px; }
+      .evidence p { color:var(--muted); margin:0; font-size:.72rem; line-height:1.45; }
+      .lock { color:var(--muted); margin-left:auto; padding-top:2px; }
+      .testimony { padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
+      .testimony:last-child { margin-bottom:0; }
+      .testimony.locked { opacity:.52; }
+      .witness { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:7px; }
+      .witness strong { font-size:.83rem; }
+      .tag { font-size:.6rem; color:var(--teal); }
+      .testimony p { color:#cad2df; margin:0; font-size:.76rem; line-height:1.6; }
+
+      .timeline-panel { margin-top:16px; }
+      .timeline-body { padding:14px 17px 16px; display:grid; gap:9px; }
+      .timeline-entry { display:grid; grid-template-columns:50px 1fr; gap:10px; font-size:.76rem; padding:6px 2px; }
+      .timeline-time { color:var(--gold); font-size:.67rem; padding-top:2px; }
+      .timeline-entry span { color:#c8d2df; line-height:1.45; }
+      .timeline-entry.hidden { display:none; }
+      .timeline-entry.hidden.show { display:grid; }
+
+      .final-panel { margin-top:16px; border-color:rgba(232,184,90,.35); }
+      .final-body { padding:19px; }
+      .final-body p { color:var(--muted); font-size:.8rem; line-height:1.6; margin-bottom:12px; }
+      .final-controls { display:flex; gap:9px; }
+      .final-controls select { flex:1; }
+      .final-button { white-space:nowrap; }
+      .case-result { display:none; margin-top:13px; padding:13px; border-radius:9px; background:rgba(145,212,160,.1); border:1px solid rgba(145,212,160,.37); color:#d9f4df; font-size:.82rem; line-height:1.65; }
+      .case-result.show { display:block; }
+
+      .toast { position:fixed; left:50%; bottom:24px; transform:translate(-50%, 20px); opacity:0; pointer-events:none; z-index:10; max-width:min(460px, calc(100% - 32px)); color:#eef7f5; background:#173b42; border:1px solid rgba(119,215,209,.55); border-radius:10px; padding:12px 15px; box-shadow:var(--shadow); font-size:.84rem; transition:.25s; }
+      .toast.show { transform:translate(-50%, 0); opacity:1; }
+
+      @media (max-width: 1080px) {
+        .game-layout { grid-template-columns:minmax(200px, .7fr) minmax(0, 1.6fr); }
+        .right-column { grid-column: 1 / -1; grid-template-columns:1fr 1fr; }
+        .timeline-panel, .final-panel { margin-top:0; }
+      }
+      @media (max-width: 720px) {
+        .app { width:min(100% - 22px, 620px); padding-top:18px; }
+        .topbar { padding-bottom:18px; }
+        .case-num { display:none; }
+        .game-layout { grid-template-columns:1fr; }
+        .right-column { grid-column:auto; grid-template-columns:1fr; }
+        .location-list { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+        .location { padding:10px 8px; gap:8px; }
+        .location strong { font-size:.78rem; }
+        .location-meta { display:none; }
+        .detective-note { margin-top:8px; }
+        .main-panel { min-height:0; }
+        .scene, .section-body { padding:21px 18px; }
+        .scene h2, .scene p { max-width:100%; }
+        .scene::before, .scene::after { display:none; }
+        .reason-grid { grid-template-columns:1fr; }
+        .reason-actions { align-items:flex-start; flex-direction:column; }
+        .submit-button { width:100%; }
+      }
+      @media (max-width:410px) {
+        .progress-copy { display:none; }
+        .location-list { grid-template-columns:1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MYSTERY SOLVER / DEMO</p>
+          <h1>夜钟疑案</h1>
+          <p class="subtitle">收集可验证的事实，找出无法同时为真的证词。</p>
+        </div>
+        <div class="progress-block" aria-label="案件进度">
+          <div class="progress-ring" id="progressRing">0%</div>
+          <div class="progress-copy"><strong id="progressTitle">调查开始</strong><span id="progressText">0 / 4 地点已调查</span></div>
+        </div>
+        <div class="case-num">CASE · 01</div>
+      </header>
+
+      <section class="game-layout" aria-label="案件调查界面">
+        <aside class="panel" aria-labelledby="locationsTitle">
+          <div class="panel-title"><h2 id="locationsTitle">调查地点</h2><small>04 SITES</small></div>
+          <nav class="location-list" id="locationList" aria-label="选择调查地点"></nav>
+          <div class="detective-note"><strong>调查守则</strong>证词不是事实。用能够独立验证的物证，去检验每一句话。</div>
+        </aside>
+
+        <section class="panel main-panel" aria-live="polite">
+          <div class="scene">
+            <span class="eyebrow-inline" id="sceneCode">SITE / 01</span>
+            <h2 id="sceneTitle"></h2>
+            <p id="sceneDescription"></p>
+            <div class="scene-footer">
+              <span class="scene-status" id="sceneStatus"></span>
+              <button class="action-button" id="searchButton" type="button"></button>
+            </div>
+            <div class="scene-reward" id="sceneReward"></div>
+          </div>
+
+          <section class="section-body" aria-labelledby="reasoningTitle">
+            <div class="section-heading"><h3 id="reasoningTitle">推理实验室</h3><span>CONTRADICTION CHECK</span></div>
+            <div class="reason-grid">
+              <label class="field"><span>选择一条证词</span><select id="statementSelect"><option value="">尚未取得可检验证词</option></select></label>
+              <label class="field"><span>选择一个可验证事实</span><select id="evidenceSelect"><option value="">尚未取得关键物证</option></select></label>
+            </div>
+            <textarea id="reasonText" maxlength="180" placeholder="写下你的推理，例如：门禁纪录证明安德鲁的时间线不成立。" aria-label="你的推理"></textarea>
+            <div class="reason-actions">
+              <span class="hint" id="reasonHint">将证词与物证配对，系统会检查二者能否同时成立。</span>
+              <button class="submit-button" id="analyzeButton" type="button" disabled>分析矛盾</button>
+            </div>
+            <div class="analysis" id="analysisResult" role="status"></div>
+          </section>
+        </section>
+
+        <aside class="right-column">
+          <section class="panel" aria-labelledby="evidenceTitle"><div class="panel-title"><h2 id="evidenceTitle">物证档案</h2><small id="evidenceCount">00 / 06</small></div><div class="evidence-list" id="evidenceList"></div></section>
+          <section class="panel" aria-labelledby="testimonyTitle"><div class="panel-title"><h2 id="testimonyTitle">人物证词</h2><small id="testimonyCount">00 / 03</small></div><div class="testimony-list" id="testimonyList"></div></section>
+          <section class="panel timeline-panel" aria-labelledby="timelineTitle"><div class="panel-title"><h2 id="timelineTitle">已知时间线</h2><small>LOCKED FACTS</small></div><div class="timeline-body" id="timelineList"></div></section>
+          <section class="panel final-panel" aria-labelledby="finalTitle">
+            <div class="panel-title"><h2 id="finalTitle">结案指控</h2><small>FINAL</small></div>
+            <div class="final-body">
+              <p id="finalHint">先找到一处关键矛盾，再组织完整证据链。</p>
+              <div class="final-controls"><select id="suspectSelect" aria-label="选择被指控人" disabled><option value="">选择嫌疑人</option><option value="andrew">安德鲁·魏</option><option value="elena">伊莲娜·朴</option><option value="marco">马可·陈</option></select><button type="button" class="final-button" id="accuseButton" disabled>提交指控</button></div>
+              <div class="case-result" id="caseResult"></div>
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+      const locations = [
+        { id: 'lobby', code: 'SITE / 01', name: '旧宅前厅', meta: '门禁与来客簿', title: '雨水没有说谎', description: '暴雨在 20:00 后才开始。前厅的黄铜门禁仍在记录每一位刷卡经过的人。', evidence: ['access-log'], testimony: ['andrew-claim'], timeline: ['20:18 门禁记录：安德鲁的工作证打开了档案室侧门。'] },
+        { id: 'tower', code: 'SITE / 02', name: '钟楼平台', meta: '停摆的古钟', title: '停在 20:14 的钟', description: '死者克拉拉倒在钟楼顶层。钟摆被人刻意卡死，控制柜上留有新鲜的机油。', evidence: ['stopped-clock', 'oil-smear'], testimony: ['elena-claim'], timeline: ['20:14 古钟停止。控制柜的紧急钥匙最后由钟表管理员领用。'] },
+        { id: 'archive', code: 'SITE / 03', name: '西侧档案室', meta: '被翻找的信件', title: '一封被撕碎的警告', description: '档案柜第三层被打开过。克拉拉写给董事会的信件残片散落在地，墨迹尚未完全干透。', evidence: ['warning-letter', 'key-register'], testimony: ['marco-claim'], timeline: ['20:20 克拉拉的信件被撕毁；内容提及“伪造修缮账目”。'] },
+        { id: 'garden', code: 'SITE / 04', name: '玻璃花房', meta: '温室与脚印', title: '离开现场的泥印', description: '花房通往钟楼的石阶上有一串沾着蓝色颜料的鞋印。它们来自管理人员专用的修缮通道。', evidence: ['blue-footprint'], testimony: [], timeline: ['20:25 蓝色颜料的鞋印自钟楼通往西侧走廊。'] }
+      ];
+
+      const evidence = [
+        { id: 'access-log', icon: '⌁', name: '侧门门禁纪录', detail: '20:18，安德鲁的工作证开启档案室侧门。', location: 'lobby' },
+        { id: 'stopped-clock', icon: '◷', name: '停摆的钟摆', detail: '古钟被人用紧急钥匙锁死在 20:14。', location: 'tower' },
+        { id: 'oil-smear', icon: '◉', name: '黑色机油痕迹', detail: '控制柜上残留与安德鲁手套相同的钟表机油。', location: 'tower' },
+        { id: 'warning-letter', icon: '✉', name: '警告信残片', detail: '克拉拉准备举报伪造修缮账目的负责人。', location: 'archive' },
+        { id: 'key-register', icon: '⌘', name: '紧急钥匙登记册', detail: '当晚唯一领用钟楼紧急钥匙的人是安德鲁。', location: 'archive' },
+        { id: 'blue-footprint', icon: '◒', name: '蓝色颜料鞋印', detail: '鞋印来自仅管理人员可走的修缮通道。', location: 'garden' }
+      ];
+
+      const testimonies = [
+        { id: 'andrew-claim', person: '安德鲁·魏', role: '钟表管理员', text: '“20:00 到 20:25，我一直在钟楼修钟，从未离开。”', location: 'lobby' },
+        { id: 'elena-claim', person: '伊莲娜·朴', role: '园丁', text: '“我在花房整理雨具，只听见钟声突然停了。”', location: 'tower' },
+        { id: 'marco-claim', person: '马可·陈', role: '馆藏研究员', text: '“克拉拉晚饭后要向董事会寄一封信。”', location: 'archive' }
+      ];
+
+      const state = { selectedLocation: 'lobby', searched: new Set(), evidence: new Set(), testimonies: new Set(), contradiction: false, solved: false };
+      const els = Object.fromEntries(['locationList','sceneCode','sceneTitle','sceneDescription','sceneStatus','searchButton','sceneReward','evidenceList','testimonyList','evidenceCount','testimonyCount','timelineList','statementSelect','evidenceSelect','reasonText','analyzeButton','reasonHint','analysisResult','suspectSelect','accuseButton','finalHint','caseResult','progressRing','progressTitle','progressText','toast'].map(id => [id, document.getElementById(id)]));
+
+      function render() {
+        renderLocations(); renderScene(); renderEvidence(); renderTestimonies(); renderTimeline(); renderReasoning(); renderProgress(); renderFinal();
+      }
+      function renderLocations() {
+        els.locationList.innerHTML = locations.map((location, index) => `
+          <button class="location ${state.selectedLocation === location.id ? 'active' : ''}" data-location="${location.id}" type="button">
+            <span class="location-mark">0${index + 1}</span><span><strong>${location.name}</strong><span class="location-meta">${location.meta}</span></span>${state.searched.has(location.id) ? '<span class="location-done">✓</span>' : ''}
+          </button>`).join('');
+        els.locationList.querySelectorAll('[data-location]').forEach(button => button.addEventListener('click', () => { state.selectedLocation = button.dataset.location; render(); }));
+      }
+      function renderScene() {
+        const location = locations.find(item => item.id === state.selectedLocation);
+        const completed = state.searched.has(location.id);
+        els.sceneCode.textContent = location.code; els.sceneTitle.textContent = location.title; els.sceneDescription.textContent = location.description;
+        els.sceneStatus.textContent = completed ? '本地点已完成取证。' : `可发现 ${location.evidence.length} 项物证${location.testimony.length ? ' 与相关证词' : ''}。`;
+        els.searchButton.textContent = completed ? '取证完成 ✓' : '开始取证'; els.searchButton.disabled = completed;
+        const rewards = [...location.evidence.map(id => evidence.find(item => item.id === id).name), ...location.testimony.map(id => `${testimonies.find(item => item.id === id).person}的证词`)];
+        els.sceneReward.className = `scene-reward ${completed ? 'show' : ''}`; els.sceneReward.innerHTML = rewards.map(item => `<span class="reward-pill">已归档 · ${item}</span>`).join('');
+      }
+      function renderEvidence() {
+        els.evidenceCount.textContent = `${String(state.evidence.size).padStart(2, '0')} / 06`;
+        els.evidenceList.innerHTML = evidence.map(item => `<article class="evidence ${state.evidence.has(item.id) ? '' : 'locked'}"><span class="evidence-icon">${state.evidence.has(item.id) ? item.icon : '◇'}</span><div><strong>${state.evidence.has(item.id) ? item.name : '未鉴定物证'}</strong><p>${state.evidence.has(item.id) ? item.detail : '继续调查以取得资料。'}</p></div>${state.evidence.has(item.id) ? '' : '<span class="lock">⌕</span>'}</article>`).join('');
+      }
+      function renderTestimonies() {
+        els.testimonyCount.textContent = `${String(state.testimonies.size).padStart(2, '0')} / 03`;
+        els.testimonyList.innerHTML = testimonies.map(item => `<article class="testimony ${state.testimonies.has(item.id) ? '' : 'locked'}"><div class="witness"><strong>${state.testimonies.has(item.id) ? item.person : '未接触证人'}</strong><span class="tag">${state.testimonies.has(item.id) ? item.role : 'LOCKED'}</span></div><p>${state.testimonies.has(item.id) ? item.text : '在相关地点完成调查后解锁。'}</p></article>`).join('');
+      }
+      function renderTimeline() {
+        const entries = locations.flatMap(item => item.timeline.map(text => ({text, visible: state.searched.has(item.id)})));
+        els.timelineList.innerHTML = entries.map(entry => { const match = entry.text.match(/^(\d{2}:\d{2})\s(.+)$/); return `<div class="timeline-entry hidden ${entry.visible ? 'show' : ''}"><time class="timeline-time">${match[1]}</time><span>${match[2]}</span></div>`; }).join('');
+      }
+      function renderReasoning() {
+        const oldStatement = els.statementSelect.value, oldEvidence = els.evidenceSelect.value;
+        const statements = testimonies.filter(item => state.testimonies.has(item.id)); const facts = evidence.filter(item => state.evidence.has(item.id));
+        els.statementSelect.innerHTML = `<option value="">选择证词</option>${statements.map(item => `<option value="${item.id}">${item.person} · ${item.text}</option>`).join('')}`;
+        els.evidenceSelect.innerHTML = `<option value="">选择物证</option>${facts.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}`;
+        els.statementSelect.value = statements.some(item => item.id === oldStatement) ? oldStatement : ''; els.evidenceSelect.value = facts.some(item => item.id === oldEvidence) ? oldEvidence : '';
+        const ready = statements.length > 0 && facts.length > 0; els.statementSelect.disabled = !ready; els.evidenceSelect.disabled = !ready; els.analyzeButton.disabled = !ready;
+        if (state.contradiction) els.reasonHint.textContent = '关键矛盾已确认。现在把它和动机、作案手段连成指控。';
+      }
+      function renderProgress() {
+        const percent = Math.round((state.searched.size / locations.length) * 100); els.progressRing.textContent = `${percent}%`; els.progressRing.style.borderRightColor = percent >= 50 ? 'var(--gold)' : 'var(--panel-high)'; els.progressRing.style.borderBottomColor = percent === 100 ? 'var(--gold)' : 'var(--panel-high)';
+        els.progressText.textContent = `${state.searched.size} / ${locations.length} 地点已调查`; els.progressTitle.textContent = state.solved ? '案件已结' : state.contradiction ? '矛盾已锁定' : state.searched.size === 0 ? '调查开始' : '线索累积中';
+      }
+      function renderFinal() {
+        const allEvidence = state.evidence.size === evidence.length; const eligible = state.contradiction && allEvidence;
+        els.suspectSelect.disabled = !eligible || state.solved; els.accuseButton.disabled = !eligible || state.solved; els.finalHint.textContent = state.solved ? '案件已归档。你建立了可被独立验证的完整证据链。' : eligible ? '证据链完整：请选择你要指控的嫌疑人。' : state.contradiction ? `还需 ${evidence.length - state.evidence.size} 项物证，才能排除合理怀疑。` : '先找到一处关键矛盾，再组织完整证据链。';
+      }
+      function searchCurrentLocation() {
+        const location = locations.find(item => item.id === state.selectedLocation); state.searched.add(location.id); location.evidence.forEach(id => state.evidence.add(id)); location.testimony.forEach(id => state.testimonies.add(id)); render(); showToast(`取证完成：${location.name}的资料已归档。`);
+      }
+      function analyze() {
+        const statement = els.statementSelect.value, fact = els.evidenceSelect.value; const result = els.analysisResult;
+        if (!statement || !fact) { showAnalysis('请先各选择一条证词与一项物证。', true); return; }
+        if (statement === 'andrew-claim' && fact === 'access-log') { state.contradiction = true; showAnalysis('矛盾成立：安德鲁声称 20:00–20:25 从未离开钟楼，但门禁纪录证明他在 20:18 打开了档案室侧门。两者不可能同时为真。该时间线谎言已写入案件档案。'); render(); return; }
+        if (statement === 'andrew-claim' && fact === 'key-register') { showAnalysis('高度相关，但尚不能单独构成矛盾：登记册证明他能进入钟楼，未证明他从未离开。把他的完整时间宣称与门禁纪录比对。'); return; }
+        if (statement === 'marco-claim' && fact === 'warning-letter') { showAnalysis('相互印证：信件残片支持马可所说的“寄给董事会”，这不是矛盾。'); return; }
+        if (statement === 'elena-claim' && fact === 'stopped-clock') { showAnalysis('相互印证：停摆时间与伊莲娜听到钟声停止的描述一致。'); return; }
+        showAnalysis('证据不足：这组资料目前没有直接冲突。寻找能否否定“何时、何地、是否离开”的独立记录。');
+      }
+      function showAnalysis(message, isError = false) { els.analysisResult.textContent = message; els.analysisResult.className = `analysis show ${isError ? 'error' : ''}`; }
+      function accuse() {
+        if (els.suspectSelect.value !== 'andrew') { els.caseResult.textContent = '证据链无法支持这项指控。已确认的时间线矛盾、钟楼钥匙与机油痕迹都指向安德鲁；请重新审视事实。'; els.caseResult.className = 'case-result show'; return; }
+        state.solved = true; els.caseResult.textContent = '结案：安德鲁·魏。门禁纪录推翻了他的不在场说法；紧急钥匙和机油痕迹证明他具备进入并破坏钟楼的手段；警告信提供了掩盖伪造账目的动机。案件满足结案条件。'; els.caseResult.className = 'case-result show'; render(); showToast('案件结案：完整推理链已归档。');
+      }
+      let toastTimer; function showToast(message) { els.toast.textContent = message; els.toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3200); }
+      els.searchButton.addEventListener('click', searchCurrentLocation); els.analyzeButton.addEventListener('click', analyze); els.accuseButton.addEventListener('click', accuse);
+      function registerModelContextTools() {
+        const context = document.modelContext; if (!context?.registerTool) return; const lifecycle = new AbortController();
+        const getState = () => ({ investigatedLocations: [...state.searched], evidenceCount: state.evidence.size, contradictionFound: state.contradiction, caseSolved: state.solved });
+        try { Promise.resolve(context.registerTool({ name:'get_case_state', title:'读取案件状态', description:'读取当前已调查地点、取得物证和结案进度。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:false}, execute:() => getState() }, {signal:lifecycle.signal})).catch(() => {}); Promise.resolve(context.registerTool({ name:'investigate_location', title:'调查地点', description:'调查一个尚未完成的地点并将取得的物证与证词写入可见案件档案。', inputSchema:{type:'object',properties:{locationId:{type:'string',enum:locations.map(item => item.id)}},required:['locationId'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute:({locationId}) => { const location=locations.find(item=>item.id===locationId); if (!location) throw new Error('未知地点'); if (!state.searched.has(locationId)) { state.selectedLocation=locationId; searchCurrentLocation(); } return getState(); } }, {signal:lifecycle.signal})).catch(() => {}); } catch (_) {}
+      }
+      render(); registerModelContextTools();
+    </script>
+  </body>
+</html>
