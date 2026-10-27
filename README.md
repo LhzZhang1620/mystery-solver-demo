@@ -44,7 +44,7 @@ If an image is missing, the game can still open and shows a fallback label. Keep
 Open PowerShell and run the following commands:
 
 ~~~powershell
-Set-Location D:\desk\9001\mystery-solver-demo
+Set-Location ...\mystery-solver-demo
 py --version
 py -c "import tkinter as tk; print(f'tkinter {tk.TkVersion}')"
 py app.py
