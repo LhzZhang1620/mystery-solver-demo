@@ -1,2 +1,7 @@
-# Generated deployment archive; rebuilt locally when publishing.
+# Python bytecode and local virtual environments.
+__pycache__/
+*.py[cod]
+.venv/
+
+# A legacy deployment archive may exist locally; it is not part of the Python game.
 *.tar.gz

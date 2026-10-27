@@ -1,22 +1,75 @@
-# 夜钟疑案 · Text Adventure Mystery Solver
+# The Midnight Chime
 
-一个无需安装依赖的 GUI 文字推理游戏 Demo。玩家调查四个地点，收集物证、阅读人物证词，并通过“证词 + 独立事实”的组合找出矛盾，最终提交指控。
+## Game Type
 
-## 本地运行
+The Midnight Chime is a single-player desktop mystery game with a graphical user interface.
 
-在 PowerShell 中进入此项目后执行：
+The player investigates six locations, collects evidence and witness statements, compares statements with independently verified facts, finds contradictions, and submits a final accusation. The game is implemented in Python with Tkinter and runs locally; it does not require a browser, database, network connection, or Node.js.
 
-```powershell
-py -m http.server 4173 --directory dist
-```
+## Requirements for a Full Run
 
-然后打开 `http://localhost:4173`。
+Keep the whole project directory intact and run the game from this directory. The application loads Python modules and image assets from relative project paths.
 
-## Demo 的推理规则
+### Required Environment
 
-1. 每个地点会解锁对应物证、证词和时间线事实。
-2. 在“推理实验室”中把证词与物证配对，系统会判断它们是矛盾、互相印证还是证据不足。
-3. 找到关键时间线矛盾后，继续完成取证以建立动机、手段、机会三部分证据链。
-4. 选择正确嫌疑人提交指控，游戏会说明结案理由。
+- Python **3.10 or later**
+- Python's built-in **Tkinter** GUI component, including Tcl/Tk
+- Windows 10 or Windows 11 is the tested platform
 
-案件数据和判定规则目前直接放在 `dist/index.html` 的 JavaScript 中，后续可将它们拆分为独立 JSON 案件文件和通用判定引擎。
+The current development environment was verified with Python 3.13.5 and Tk 8.6.
+
+### Runtime Packages
+
+No third-party packages are required to run the game.
+
+The runtime uses only Python standard-library modules:
+
+- tkinter and ttk for the desktop interface
+- pathlib for file paths
+- dataclasses and typing for game state definitions
+- copy for the bilingual case data
+
+### Required Project Content
+
+Do not remove the following while preparing a full version of the game:
+
+- app.py, launcher.py, engine.py, and i18n.py
+- the cases directory, including cases/night_clock.py
+- the assets directory, including the UI images, six location images, and five character portraits
+
+If an image is missing, the game can still open and shows a fallback label. Keeping all assets is required for the intended visual experience.
+
+## Run on Windows with PowerShell
+
+Open PowerShell and run the following commands:
+
+~~~powershell
+Set-Location D:\desk\9001\mystery-solver-demo
+py --version
+py -c "import tkinter as tk; print(f'tkinter {tk.TkVersion}')"
+py app.py
+~~~
+
+The last command opens the Case Files window. Select **Open Case 01** to start playing.
+
+If the py command is unavailable, replace py with the installed python command.
+
+## Optional Development Package
+
+Pillow is needed only when regenerating placeholder image assets with tools/generate_placeholder_assets.py. It is not needed to play the game.
+
+~~~powershell
+py -m pip install Pillow
+~~~
+
+Do not run the placeholder-image generator over finished artwork unless you intend to replace the current location images.
+
+## Tkinter Troubleshooting
+
+If the Tkinter check fails, reinstall Python with the **Tcl/Tk** option enabled.
+
+On Debian or Ubuntu, install the system Tkinter package before running the game:
+
+~~~bash
+sudo apt install python3-tk
+~~~
